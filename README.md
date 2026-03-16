@@ -16,39 +16,6 @@ A full-featured academic productivity app built with Django, Python, HTML, CSS, 
 - **Auth** — Register/login with sample subjects auto-created for new users
 
 ---
-
-## 🚀 Quick Start
-
-### 1. Install Django
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Run migrations
-```bash
-python manage.py makemigrations tracker
-python manage.py migrate
-```
-
-### 3. (Optional) Create admin superuser
-```bash
-python manage.py createsuperuser
-```
-
-### 4. Start the server
-```bash
-python manage.py runserver
-```
-
-### 5. Open in browser
-```
-http://127.0.0.1:8000/register/
-```
-
-Register a new account — three sample subjects (Mathematics, Physics, History) are automatically created.
-
----
-
 ## 📁 Project Structure
 
 ```
