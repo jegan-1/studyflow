@@ -1,0 +1,71 @@
+{% extends 'planner/base.html' %}
+{% block title %}Update Task — StudyOS{% endblock %}
+{% block page_title %}Update Task{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <div class="card">
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;">{{ task.title }}</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">Created {{ task.created_at|date:"M d, Y" }}</div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Task Title *</label>
+        <input type="text" name="title" class="form-control" value="{{ task.title }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="3">{{ task.description }}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select name="subject" class="form-control">
+            <option value="">— None —</option>
+            {% for subject in form.fields.subject.queryset %}
+              <option value="{{ subject.pk }}" {% if task.subject_id == subject.pk %}selected{% endif %}>{{ subject.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select name="priority" class="form-control">
+            {% for val, label in form.fields.priority.choices %}
+              <option value="{{ val }}" {% if task.priority == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input type="date" name="due_date" class="form-control" value="{{ task.due_date|date:'Y-m-d'|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-control">
+            {% for val, label in form.fields.status.choices %}
+              <option value="{{ val }}" {% if task.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Actual Hours Spent</label>
+        <input type="number" name="actual_hours" class="form-control" step="0.5" min="0" value="{{ task.actual_hours|default:'' }}">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary">Save Changes →</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+        <form method="post" action="{% url 'delete_task' task.pk %}" style="margin-left:auto;">
+          {% csrf_token %}
+          <button type="button" class="btn btn-danger"
+                  onclick="confirmDelete(this.closest('form'), '{{ task.title|escapejs }}')">Delete</button>
+        </form>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

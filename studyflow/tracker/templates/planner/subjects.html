@@ -1,0 +1,65 @@
+{% extends 'planner/base.html' %}
+{% block title %}Subjects — StudyOS{% endblock %}
+{% block page_title %}Subjects{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Your Subjects</div>
+      <span style="font-size:11px;color:var(--text-faint);">{{ subjects.count }} subjects</span>
+    </div>
+    {% if subjects %}
+      <div class="subject-list">
+        {% for subject in subjects %}
+          <div class="subject-card">
+            <div class="subject-color-bar" style="background:{{ subject.color }}"></div>
+            <div class="subject-name" style="color:{{ subject.color }}">{{ subject.name }}</div>
+            <div class="subject-stats">{{ subject.task_count }} tasks · {{ subject.completed_count }} done</div>
+            {% if subject.task_count > 0 %}
+              <div class="progress-wrap mt-1">
+                <div class="progress-bar" style="width:{% widthratio subject.completed_count subject.task_count 100 %}%;background:{{ subject.color }}"></div>
+              </div>
+            {% endif %}
+            <div style="margin-top:10px;">
+              <form method="post" action="{% url 'delete_subject' subject.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="confirmDelete(this.closest('form'), '{{ subject.name|escapejs }}')">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><div class="empty-icon">◎</div><p>No subjects yet.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card" style="height:fit-content;">
+    <div class="section-title mb-2">Add Subject</div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Subject Name</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g. Mathematics" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Color</label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="color" name="color" value="#7c6af5"
+                 style="width:60px;height:40px;padding:4px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            {% for color in '#ef4444,#f59e0b,#10b981,#3b82f6,#8b5cf6,#ec4899,#14b8a6,#f97316'|split:',' %}
+              <button type="button"
+                      style="width:24px;height:24px;border-radius:50%;background:{{ color }};border:2px solid transparent;cursor:pointer;"
+                      onclick="document.querySelector('[name=color]').value='{{ color }}'"></button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Subject →</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

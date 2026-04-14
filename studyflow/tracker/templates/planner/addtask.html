@@ -1,0 +1,71 @@
+{% extends 'planner/base.html' %}
+{% block title %}Add Task — StudyOS{% endblock %}
+{% block page_title %}Add Task{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Task Title *</label>
+        <input type="text" name="title" class="form-control" placeholder="What do you need to do?" required
+               value="{{ form.title.value|default:'' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="3">{{ form.description.value|default:'' }}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select name="subject" class="form-control">
+            <option value="">— None —</option>
+            {% for subject in form.fields.subject.queryset %}
+              <option value="{{ subject.pk }}" {% if form.subject.value == subject.pk|stringformat:"s" %}selected{% endif %}>
+                {{ subject.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select name="priority" class="form-control">
+            {% for val, label in form.fields.priority.choices %}
+              <option value="{{ val }}" {% if form.priority.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input type="date" name="due_date" class="form-control" value="{{ form.due_date.value|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Time</label>
+          <input type="time" name="due_time" class="form-control" value="{{ form.due_time.value|default:'' }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Estimated Hours</label>
+          <input type="number" name="estimated_hours" class="form-control" step="0.5" min="0" placeholder="e.g. 2.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-control">
+            {% for val, label in form.fields.status.choices %}
+              <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary">Add Task →</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

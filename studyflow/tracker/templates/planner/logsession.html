@@ -1,0 +1,55 @@
+{% extends 'planner/base.html' %}
+{% block title %}Log Session — StudyOS{% endblock %}
+{% block page_title %}Log Study Session{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select name="subject" class="form-control">
+            <option value="">— None —</option>
+            {% for subject in form.fields.subject.queryset %}
+              <option value="{{ subject.pk }}">{{ subject.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Related Task</label>
+          <select name="task" class="form-control">
+            <option value="">— None —</option>
+            {% for task in form.fields.task.queryset %}
+              <option value="{{ task.pk }}">{{ task.title|truncatechars:40 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Time</label>
+          <input type="datetime-local" name="start_time" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time <span style="color:var(--text-faint)">(optional)</span></label>
+          <input type="datetime-local" name="end_time" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration (minutes) — if no end time</label>
+        <input type="number" name="duration_minutes" class="form-control" min="1" placeholder="e.g. 90">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control" rows="3" placeholder="What did you study?"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary">Log Session →</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

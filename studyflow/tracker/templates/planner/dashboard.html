@@ -1,0 +1,137 @@
+{% extends 'planner/base.html' %}
+{% block title %}Dashboard — StudyOS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'add_task' %}" class="btn btn-primary btn-sm">+ Add Task</a>
+  <a href="{% url 'log_session' %}" class="btn btn-outline btn-sm">▷ Log Session</a>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card" style="--accent-color:#7c6af5;">
+    <div class="stat-label">Total Tasks</div>
+    <div class="stat-value">{{ total_tasks }}</div>
+    <div class="stat-sub">{{ completed_count }} completed</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#4af59e;">
+    <div class="stat-label">Completion Rate</div>
+    <div class="stat-value">{{ completion_rate }}<span style="font-size:18px">%</span></div>
+    <div class="stat-sub">
+      <div class="progress-wrap mt-1">
+        <div class="progress-bar" style="width:{{ completion_rate }}%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f59e4a;">
+    <div class="stat-label">Study Hours</div>
+    <div class="stat-value">{{ total_study_hours }}<span style="font-size:16px">h</span></div>
+    <div class="stat-sub">total logged time</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f54a4a;">
+    <div class="stat-label">Overdue</div>
+    <div class="stat-value" style="color:{% if overdue_tasks %}var(--danger){% else %}var(--text){% endif %}">
+      {{ overdue_tasks|length }}
+    </div>
+    <div class="stat-sub">tasks past deadline</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Active Tasks</div>
+      <a href="{% url 'add_task' %}" class="btn btn-outline btn-sm">+ New</a>
+    </div>
+
+    {% if overdue_tasks %}
+      <div style="margin-bottom:12px;">
+        <div class="card-title" style="color:var(--danger);">⚠ Overdue</div>
+        <div class="task-list">
+          {% for task in overdue_tasks %}{% include 'planner/partials/task_item.html' %}{% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if today_tasks %}
+      <div style="margin-bottom:12px;">
+        <div class="card-title">Due Today</div>
+        <div class="task-list">
+          {% for task in today_tasks %}
+            {% if task not in overdue_tasks %}{% include 'planner/partials/task_item.html' %}{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="task-list">
+      {% for task in pending_tasks %}
+        {% if task not in overdue_tasks and task not in today_tasks %}
+          {% include 'planner/partials/task_item.html' %}
+        {% endif %}
+      {% empty %}
+        {% if not overdue_tasks and not today_tasks %}
+          <div class="empty-state"><div class="empty-icon">✓</div><p>All caught up!</p></div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card">
+      <div class="section-header">
+        <div class="section-title">Upcoming (7 days)</div>
+        <a href="{% url 'analytics' %}" class="btn btn-outline btn-sm">View all →</a>
+      </div>
+      {% if upcoming_tasks %}
+        <div class="task-list">
+          {% for task in upcoming_tasks %}{% include 'planner/partials/task_item.html' %}{% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><p>No upcoming tasks this week.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <div class="section-title">Recent Sessions</div>
+        <a href="{% url 'log_session' %}" class="btn btn-outline btn-sm">+ Log</a>
+      </div>
+      {% if recent_sessions %}
+        {% for session in recent_sessions %}
+          <div class="session-item">
+            <div class="session-dot" style="{% if session.subject %}background:{{ session.subject.color }}{% endif %}"></div>
+            <div class="session-info">
+              <div class="session-title">
+                {% if session.subject %}{{ session.subject.name }}{% else %}General Study{% endif %}
+              </div>
+              <div class="session-meta">{{ session.start_time|date:"M d, g:i A" }}</div>
+            </div>
+            <div class="session-duration">{{ session.duration_minutes }}m</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state"><p>No sessions logged yet.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <div class="section-title">Subjects</div>
+        <a href="{% url 'subjects' %}" class="btn btn-outline btn-sm">Manage →</a>
+      </div>
+      {% if subjects %}
+        {% for subject in subjects %}
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="width:10px;height:10px;border-radius:50%;background:{{ subject.color }};flex-shrink:0;"></div>
+            <span style="font-size:13px;flex:1;">{{ subject.name }}</span>
+            <span style="font-size:10px;color:var(--text-faint);">{{ subject.tasks.count }} tasks</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state"><p><a href="{% url 'subjects' %}" style="color:var(--accent);">Add a subject →</a></p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

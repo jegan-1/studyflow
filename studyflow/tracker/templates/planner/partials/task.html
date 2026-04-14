@@ -1,0 +1,52 @@
+{% for task in tasks %}
+<div class="task-item {% if task.status == 'completed' %}completed{% endif %} {% if task.is_overdue %}overdue{% endif %}">
+  
+  <button class="task-check {% if task.status == 'completed' %}done{% endif %}"
+          data-task-id="{{ task.pk }}" 
+          type="button">
+  </button>
+
+  <div class="task-content">
+    <div class="task-title">{{ task.title }}</div>
+    <div class="task-meta">
+
+      <span class="tag tag-priority-{{ task.priority }}">{{ task.priority }}</span>
+
+      {% if task.subject %}
+        <span class="tag tag-subject"
+              style="background: rgba(0,0,0,0.15); color: {{ task.subject.color }}; border: 1px solid {{ task.subject.color }};">
+          {{ task.subject.name }}
+        </span>
+      {% endif %}
+
+      {% if task.due_date %}
+        <span class="due-date {% if task.is_overdue %}overdue{% endif %}">
+          {% if task.is_overdue %}⚠{% endif %}
+          {{ task.due_date|date:"M d" }}
+        </span>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <div class="task-actions">
+
+   
+    <a href="{% url 'tasks:update_task' task.pk %}"
+       class="btn btn-outline btn-sm btn-icon"
+       title="Edit">✎</a>
+
+    <form method="post"
+          action="{% url 'tasks:delete_task' task.pk %}"
+          style="display:inline;">
+      {% csrf_token %}
+      <button type="button"
+              class="btn btn-danger btn-sm btn-icon"
+              onclick="confirmDelete(this.closest('form'), '{{ task.title|escapejs }}')"
+              title="Delete">✕</button>
+    </form>
+
+  </div>
+
+</div>
+{% endfor %}

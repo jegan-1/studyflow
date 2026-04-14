@@ -1,0 +1,79 @@
+{% load static %}
+{% if user.is_authenticated %}
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">StudyOS</div>
+    <div class="logo-sub">Study Planner</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+
+    <a href="{% url 'dashboard' %}" class="nav-link">
+      <span class="nav-icon">⬡</span> Dashboard
+    </a>
+
+    <a href="{% url 'analytics' %}" class="nav-link">
+      <span class="nav-icon">◈</span> Analytics
+    </a>
+
+    <div class="nav-section-label">Tasks</div>
+
+    <a href="{% url 'add_task' %}" class="nav-link">
+      <span class="nav-icon">+</span> Add Task
+    </a>
+
+    <a href="{% url 'subjects' %}" class="nav-link">
+      <span class="nav-icon">◎</span> Subjects
+    </a>
+
+    <div class="nav-section-label">Study</div>
+
+    <a href="{% url 'log_session' %}" class="nav-link">
+      <span class="nav-icon">▷</span> Log Session
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="user-avatar">{{ user.username|first|upper }}</div>
+      <div class="user-name">{{ user.username }}</div>
+    </div>
+    <form method="post" action="{% url 'logout' %}" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="nav-link" style="color:var(--text-faint);font-size:11px;background:none;border:none;cursor:pointer;width:100%;text-align:left;padding:0;">
+        <span class="nav-icon">→</span> Sign out
+      </button>
+    </form>
+
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+  </div>
+
+  <div class="page-content">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% else %}
+
+{% block auth_content %}{% endblock %}
+
+{% endif %}
+
+<script src="{% static 'planner/js/script.js' %}"></script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

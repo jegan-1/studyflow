@@ -1,0 +1,157 @@
+{% extends 'planner/base.html' %}
+{% block title %}Analytics — StudyOS{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card" style="--accent-color:#7c6af5;">
+    <div class="stat-label">Total Tasks</div>
+    <div class="stat-value">{{ total_tasks }}</div>
+    <div class="stat-sub">{{ completed_tasks }} done · {{ pending_tasks }} pending</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#4af59e;">
+    <div class="stat-label">Completion Rate</div>
+    <div class="stat-value">{{ completion_rate }}<span style="font-size:18px">%</span></div>
+    <div class="stat-sub">last 30 days</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f59e4a;">
+    <div class="stat-label">Total Study Time</div>
+    <div class="stat-value">{{ total_study_hours }}<span style="font-size:16px">h</span></div>
+    <div class="stat-sub">{{ total_sessions }} sessions</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#4af5b8;">
+    <div class="stat-label">This Week</div>
+    <div class="stat-value">{{ this_week_hours }}<span style="font-size:16px">h</span></div>
+    <div class="stat-sub">avg {{ avg_session_mins }}min / session</div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-title">Study Time — Last 30 Days</div>
+  <div class="chart-container-lg"><canvas id="dailyChart"></canvas></div>
+</div>
+
+<div class="grid-3 mb-3">
+  <div class="card">
+    <div class="card-title">Tasks by Status</div>
+    <div class="chart-container"><canvas id="statusChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tasks by Priority</div>
+    <div class="chart-container"><canvas id="priorityChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Weekly Study Hours</div>
+    <div class="chart-container"><canvas id="weeklyChart"></canvas></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Tasks per Subject</div>
+    {% if subject_data != '[]' %}
+      <div class="chart-container"><canvas id="subjectTaskChart"></canvas></div>
+    {% else %}
+      <div class="empty-state"><p>Add subjects to tasks to see this chart.</p></div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title">Study Time per Subject</div>
+    {% if subject_study != '[]' %}
+      <div class="chart-container"><canvas id="subjectStudyChart"></canvas></div>
+    {% else %}
+      <div class="empty-state"><p>Log sessions with subjects to see this.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+Chart.defaults.color = '#8888aa';
+Chart.defaults.font = { family: "'DM Mono', monospace", size: 11 };
+const grid = 'rgba(42,42,58,0.8)';
+
+const daily = {{ daily_sessions|safe }};
+new Chart('dailyChart', {
+  type: 'bar',
+  data: {
+    labels: daily.map(d => d.date),
+    datasets: [{ label: 'Hours', data: daily.map(d => d.hours),
+      backgroundColor: 'rgba(124,106,245,0.4)', borderColor: '#7c6af5',
+      borderWidth: 1, borderRadius: 4 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: grid }, ticks: { maxTicksLimit: 10 } },
+              y: { grid: { color: grid }, beginAtZero: true } } }
+});
+
+const statusColors = { pending:'#8888aa', in_progress:'#f59e4a', completed:'#4af59e', skipped:'#444466' };
+const sd = {{ status_data|safe }};
+new Chart('statusChart', {
+  type: 'doughnut',
+  data: { labels: sd.map(d => d.status.replace('_',' ')),
+    datasets: [{ data: sd.map(d => d.count),
+      backgroundColor: sd.map(d => statusColors[d.status]||'#666'),
+      borderColor: '#12121a', borderWidth: 2 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '65%',
+    plugins: { legend: { position: 'bottom', labels: { padding: 12, boxWidth: 12 } } } }
+});
+
+const pColors = { urgent:'#f54a4a', high:'#f5c84a', medium:'#7c6af5', low:'#4af5b8' };
+const pd = {{ priority_data|safe }};
+const sortedP = ['urgent','high','medium','low'].map(p => pd.find(d => d.priority===p)).filter(Boolean);
+new Chart('priorityChart', {
+  type: 'bar',
+  data: { labels: sortedP.map(d => d.priority),
+    datasets: [{ data: sortedP.map(d => d.count),
+      backgroundColor: sortedP.map(d => pColors[d.priority]+'99'),
+      borderColor: sortedP.map(d => pColors[d.priority]),
+      borderWidth: 1, borderRadius: 4 }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: grid } }, y: { grid: { color: grid }, beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+const wd = {{ weekly_data|safe }};
+new Chart('weeklyChart', {
+  type: 'line',
+  data: { labels: wd.map(d => d.week),
+    datasets: [{ data: wd.map(d => d.hours), borderColor: '#f59e4a',
+      backgroundColor: 'rgba(245,158,74,0.1)', borderWidth: 2,
+      fill: true, tension: 0.4, pointBackgroundColor: '#f59e4a', pointRadius: 4 }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: grid } }, y: { grid: { color: grid }, beginAtZero: true } } }
+});
+
+const subj = {{ subject_data|safe }};
+if (subj.length) new Chart('subjectTaskChart', {
+  type: 'bar',
+  data: { labels: subj.map(d => d.subject__name),
+    datasets: [
+      { label: 'Total', data: subj.map(d => d.count),
+        backgroundColor: subj.map(d => d.subject__color+'55'),
+        borderColor: subj.map(d => d.subject__color), borderWidth: 1, borderRadius: 4 },
+      { label: 'Completed', data: subj.map(d => d.completed),
+        backgroundColor: subj.map(d => d.subject__color+'aa'),
+        borderColor: subj.map(d => d.subject__color), borderWidth: 1, borderRadius: 4 }
+    ]},
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 10, boxWidth: 10 } } },
+    scales: { x: { grid: { color: grid } }, y: { grid: { color: grid }, beginAtZero: true } } }
+});
+
+const ss = {{ subject_study|safe }};
+if (ss.length) new Chart('subjectStudyChart', {
+  type: 'doughnut',
+  data: { labels: ss.map(d => d.subject__name),
+    datasets: [{ data: ss.map(d => Math.round(d.total_mins/60*10)/10),
+      backgroundColor: ss.map(d => d.subject__color+'99'),
+      borderColor: ss.map(d => d.subject__color), borderWidth: 2 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '60%',
+    plugins: { legend: { position: 'bottom', labels: { padding: 10, boxWidth: 10 } } } }
+});
+</script>
+{% endblock %}

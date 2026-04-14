@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login — StudyOS</title>
+
+    <link rel="stylesheet" href="{% static 'planner/css/style.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="login-card">
+
+        <h1 class="logo">StudyOS</h1>
+        <p class="subtitle">Study Planner & Tracker</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <button class="login-btn" type="submit">
+                Sign In →
+            </button>
+
+        </form>
+
+        <p class="register-text">
+            No account?
+            <a href="{% url 'register' %}">Create one</a>
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>
